@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Customer Retention Prediction</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .container {
+        width: 900px;
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        padding: 25px;
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {opacity: 0; transform: scale(0.95);}
+        to {opacity: 1; transform: scale(1);}
+    }
+
+    h1 {
+        text-align: center;
+        color: #1e88e5;
+        margin-bottom: 5px;
+    }
+
+    p {
+        text-align: center;
+        margin-top: 0;
+        color: #555;
+        font-size: 14px;
+    }
+
+    h2 {
+        margin-top: 20px;
+        font-size: 16px;
+        color: #333;
+        border-left: 4px solid #4a90e2;
+        padding-left: 10px;
+    }
+
+    label {
+        display: block;
+        margin-top: 10px;
+        font-size: 13px;
+        color: #444;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+    }
+
+    .telecom {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .telecom button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        background: #eee;
+        cursor: pointer;
+    }
+
+    .telecom button.active {
+        background: #1e88e5;
+        color: white;
+    }
+
+    .predict-btn {
+        width: 100%;
+        margin-top: 20px;
+        padding: 12px;
+        background: linear-gradient(90deg, #4a90e2, #7b61ff);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .result {
+        margin-top: 15px;
+        padding: 15px;
+        background: #e8f5e9;
+        border-radius: 10px;
+        display: none;
+        font-size: 14px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Customer Retention Prediction</h1>
+<p>Smart Churn Analysis System</p>
+
+<!-- 👤 CUSTOMER DETAILS -->
+<h2>👤 Customer Details</h2>
+
+<label>Tenure (Months)</label>
+<input type="number" id="tenure" value="3">
+
+<label>Monthly Charges</label>
+<input type="number" id="monthly" value="1200">
+
+<label>Total Charges</label>
+<input type="number" id="total" value="1500">
+
+<label>Location</label>
+<select>
+    <option selected>Rural</option>
+    <option>Urban</option>
+</select>
+
+<!-- 👨‍👩‍👧 PERSONAL INFO -->
+<h2>👨‍👩‍👧 Personal Info</h2>
+
+<label>Gender</label>
+<select>
+    <option>Female</option>
+    <option>Male</option>
+</select>
+
+<label>Partner</label>
+<select>
+    <option>No</option>
+    <option>Yes</option>
+</select>
+
+<label>Dependents</label>
+<select>
+    <option>No</option>
+    <option>Yes</option>
+</select>
+
+<!-- 📡 SERVICES -->
+<h2>📡 Services</h2>
+
+<label>Phone Service</label>
+<select>
+    <option>Yes</option>
+    <option>No</option>
+</select>
+
+<label>Internet Type</label>
+<select>
+    <option>Fiber</option>
+    <option>DSL</option>
+    <option>None</option>
+</select>
+
+<!-- 💳 BILLING -->
+<h2>💳 Billing Details</h2>
+
+<label>Contract</label>
+<select>
+    <option>1 Year</option>
+    <option>Month-to-month</option>
+</select>
+
+<label>Payment Method</label>
+<select>
+    <option>Electronic Check</option>
+    <option>Bank</option>
+    <option>Credit Card</option>
+</select>
+
+<label>Paperless Billing</label>
+<select>
+    <option>Yes</option>
+    <option>No</option>
+</select>
+
+<label>Device Type</label>
+<select>
+    <option>New</option>
+    <option>Old</option>
+</select>
+
+<!-- 📡 TELECOM -->
+<h2>📡 Telecom Selection</h2>
+
+<div class="telecom">
+    <button onclick="selectTel(this)">Jio</button>
+    <button onclick="selectTel(this)">Airtel</button>
+    <button onclick="selectTel(this)">VI</button>
+    <button onclick="selectTel(this)">BSNL</button>
+</div>
+
+<button class="predict-btn" onclick="predict()">🔮 Predict</button>
+
+<div class="result" id="resultBox"></div>
+
+</div>
+
+<script>
+let selectedTel = "BSNL";
+
+function selectTel(btn) {
+    document.querySelectorAll(".telecom button")
+        .forEach(b => b.classList.remove("active"));
+
+    btn.classList.add("active");
+    selectedTel = btn.innerText;
+}
+
+function predict() {
+    let tenure = document.getElementById("tenure").value;
+    let monthly = document.getElementById("monthly").value;
+    let total = document.getElementById("total").value;
+
+     // ✅ SMART SCORE SYSTEM (FIXED)
+    let score = 0;
+
+    if (tenure < 3) score += 50;
+    else if (tenure < 6) score += 30;
+    else score += 10;
+
+    if (monthly > 1200) score += 40;
+    else if (monthly > 800) score += 25;
+    else score += 10;
+
+    if (total < 2000) score += 20;
+    else score += 5;
+
+    let status = "";
+
+    if (score >= 70) {
+        status = "🔴 High Risk - Customer May Leave";
+    } else if (score >= 40) {
+        status = "🟠 Medium Risk - Customer is not fully happy but not decided to leave";
+    } else {
+        status = "🟢 Low Risk - Customer Retained";
+    }
+
+    let resultBox = document.getElementById("resultBox");
+
+    resultBox.style.display = "block";
+
+    resultBox.innerHTML = `
+        📊 Prediction Result<br><br>
+        📡 Telecom: ${selectedTel}<br>
+        📅 Tenure: ${tenure}<br>
+        💰 Monthly: ${monthly}<br>
+        💳 Total: ${total}<br><br>
+        🔍 Status: ${status}
+    `;
+}
+</script>
+
+</body>
+</html>
