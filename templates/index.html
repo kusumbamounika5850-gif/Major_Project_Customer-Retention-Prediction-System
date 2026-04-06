@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Churn Predictor</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; color: #222; }
+
+  .page { padding: 2rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 1.8rem; }
+  .header h1 { font-size: 26px; font-weight: 600; color: #3b1f14; }
+  .header p { font-size: 13px; color: #777; margin-top: 5px; }
+
+  .main-layout { display: grid; grid-template-columns: 220px 1fr; gap: 1.2rem; align-items: start; }
+
+  /* LEFT */
+  .left { display: flex; flex-direction: column; gap: 10px; position: sticky; top: 1rem; }
+  .left-title {
+    font-size: 11px; font-weight: 600; color: #888;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 0 4px; margin-bottom: 2px;
+  }
+
+  .t-card {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px; padding: 16px 12px;
+    border: 1.5px solid #e0e0e0; border-radius: 14px;
+    cursor: pointer; background: #fafafa; transition: all 0.15s;
+  }
+  .t-card:hover { background: #fff; border-color: #bbb; }
+  .t-logo-wrap {
+    width: 80px; height: 80px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .t-name { font-size: 13px; font-weight: 600; color: #222; text-align: center; }
+  .t-sub  { font-size: 11px; color: #999; text-align: center; margin-top: 2px; }
+  .t-sel  {
+    font-size: 10px; font-weight: 600; padding: 2px 9px;
+    border-radius: 8px; margin-top: 4px; display: none;
+  }
+
+  .t-card[data-op="jio"].active    { border-color: #0066CC; background: #EEF7FF; }
+  .t-card[data-op="jio"].active .t-name { color: #003D8F; }
+  .t-card[data-op="jio"]    .t-sel { background: #DBEEFF; color: #003D8F; }
+  .t-card[data-op="airtel"].active  { border-color: #E0001A; background: #FFF0EE; }
+  .t-card[data-op="airtel"].active .t-name { color: #A3000F; }
+  .t-card[data-op="airtel"] .t-sel { background: #FFE5E5; color: #A3000F; }
+  .t-card[data-op="vi"].active      { border-color: #C8000A; background: #FFF8E1; }
+  .t-card[data-op="vi"].active .t-name { color: #8B1510; }
+  .t-card[data-op="vi"]     .t-sel { background: #FFF3CD; color: #8B1510; }
+  .t-card[data-op="bsnl"].active    { border-color: #1B5E20; background: #E8F5E9; }
+  .t-card[data-op="bsnl"].active .t-name { color: #1B5E20; }
+  .t-card[data-op="bsnl"]   .t-sel { background: #D8F0DB; color: #1B5E20; }
+
+  /* RIGHT */
+  .right { display: flex; flex-direction: column; gap: 1rem; }
+
+  .section {
+    background: #fff; border: 0.5px solid #e0e0e0;
+    border-radius: 14px; padding: 1rem 1.25rem;
+  }
+  .sec-title {
+    font-size: 11px; font-weight: 600; color: #888;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 12px; color: #666; }
+  .field input, .field select {
+    font-size: 13px; padding: 7px 9px;
+    border: 1px solid #ddd; border-radius: 8px;
+    background: #fafafa; color: #222; width: 100%;
+    outline: none; transition: border 0.15s;
+  }
+  .field input:focus, .field select:focus { border-color: #6D3B2E; }
+
+  /* Predict section */
+  .predict-section {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    background: #fff; border: 0.5px solid #e0e0e0;
+    border-radius: 14px; padding: 1.5rem 1.25rem;
+  }
+  .predict-hint { font-size: 12px; color: #999; text-align: center; }
+
+  .predict-btn-wrap { display: flex; justify-content: center; width: 100%; }
+  .predict-btn {
+    padding: 15px 52px;
+    background: #6D3B2E;
+    color: #FFF8F5;
+    border: none; border-radius: 50px;
+    font-size: 16px; font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 4px 20px rgba(109,59,46,0.45), 0 0 0 4px rgba(109,59,46,0.1);
+    transition: all 0.2s;
+    letter-spacing: 0.02em; min-width: 260px;
+  }
+  .predict-btn:hover {
+    background: #8B4A39;
+    box-shadow: 0 7px 28px rgba(109,59,46,0.6), 0 0 0 6px rgba(109,59,46,0.14);
+    transform: translateY(-2px);
+  }
+  .predict-btn:active { transform: translateY(0); box-shadow: 0 2px 10px rgba(109,59,46,0.35); }
+
+  /* Result */
+  .result-box {
+    border-radius: 12px; overflow: hidden;
+    display: none; border: 1.5px solid transparent; width: 100%;
+  }
+  .result-box.high   { border-color: #F09595; background: #FCEBEB; }
+  .result-box.medium { border-color: #EF9F27; background: #FAEEDA; }
+  .result-box.low    { border-color: #97C459; background: #EAF3DE; }
+
+  .result-top { padding: 16px; }
+  .risk-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .risk-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .result-box.high   .risk-dot { background: #E24B4A; }
+  .result-box.medium .risk-dot { background: #EF9F27; }
+  .result-box.low    .risk-dot { background: #639922; }
+
+  .risk-label { font-size: 15px; font-weight: 600; }
+  .result-box.high   .risk-label { color: #A32D2D; }
+  .result-box.medium .risk-label { color: #854F0B; }
+  .result-box.low    .risk-label { color: #3B6D11; }
+
+  .risk-desc { font-size: 12px; margin-bottom: 12px; }
+  .result-box.high   .risk-desc { color: #793333; }
+  .result-box.medium .risk-desc { color: #774508; }
+  .result-box.low    .risk-desc { color: #306010; }
+
+  .score-row { display: flex; align-items: center; gap: 10px; }
+  .score-bar { flex: 1; height: 8px; border-radius: 4px; background: rgba(0,0,0,0.1); overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 4px; transition: width 0.7s ease; width: 0%; }
+  .result-box.high   .score-fill { background: #E24B4A; }
+  .result-box.medium .score-fill { background: #EF9F27; }
+  .result-box.low    .score-fill { background: #639922; }
+
+  .score-val { font-size: 13px; font-weight: 600; min-width: 52px; text-align: right; }
+  .result-box.high   .score-val { color: #A32D2D; }
+  .result-box.medium .score-val { color: #854F0B; }
+  .result-box.low    .score-val { color: #3B6D11; }
+
+  .result-bottom {
+    padding: 12px 16px;
+    background: rgba(0,0,0,0.04);
+    border-top: 1px solid rgba(0,0,0,0.07);
+  }
+  .factors-label {
+    font-size: 11px; font-weight: 600; color: #888;
+    letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .factors { display: flex; flex-direction: column; gap: 5px; }
+  .factor {
+    font-size: 12px; padding: 5px 10px; border-radius: 6px;
+    background: #fff; border: 1px solid #e8e8e8; color: #555;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="header">
+    <h1>Customer Churn Predictor</h1>
+    <p>Telecom churn analysis &nbsp;·&nbsp; 7,043 customers &nbsp;·&nbsp; 31 features</p>
+  </div>
+
+  <div class="main-layout">
+
+    <!-- ===== LEFT: Telecom Partners ===== -->
+    <div class="left">
+      <div class="left-title">Telecom Partner</div>
+
+      <!-- Jio -->
+      <div class="t-card active" data-op="jio" onclick="selectTelecom(this,'Reliance Jio')">
+        <div class="t-logo-wrap" style="background:#EEF7FF">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+            <rect width="80" height="80" rx="14" fill="#EEF7FF"/>
+            <text x="40" y="28" text-anchor="middle" font-size="10" font-weight="700"
+                  fill="#0066CC" font-family="sans-serif" letter-spacing="2">RELIANCE</text>
+            <text x="40" y="54" text-anchor="middle" font-size="28" font-weight="900"
+                  fill="#0066CC" font-family="sans-serif">Jio</text>
+            <rect x="16" y="60" width="48" height="3" rx="1.5" fill="#0066CC" opacity="0.25"/>
+          </svg>
+        </div>
+        <div class="t-name">Reliance Jio</div>
+        <div class="t-sub">4G / 5G · Pan India</div>
+        <div class="t-sel">&#10003; Selected</div>
+      </div>
+
+      <!-- Airtel -->
+      <div class="t-card" data-op="airtel" onclick="selectTelecom(this,'Airtel')">
+        <div class="t-logo-wrap" style="background:#FFF0EE">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+            <rect width="80" height="80" rx="14" fill="#FFF0EE"/>
+            <ellipse cx="40" cy="36" rx="20" ry="13" fill="none" stroke="#E0001A" stroke-width="4.5"/>
+            <ellipse cx="40" cy="36" rx="9"  ry="13" fill="none" stroke="#E0001A" stroke-width="3.5"/>
+            <text x="40" y="62" text-anchor="middle" font-size="13" font-weight="700"
+                  fill="#E0001A" font-family="sans-serif" letter-spacing="1">airtel</text>
+          </svg>
+        </div>
+        <div class="t-name">Airtel</div>
+        <div class="t-sub">4G / 5G · Pan India</div>
+        <div class="t-sel">&#10003; Selected</div>
+      </div>
+
+      <!-- Vi -->
+      <div class="t-card" data-op="vi" onclick="selectTelecom(this,'VI-Idea')">
+        <div class="t-logo-wrap" style="background:#FFF8E1">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+            <rect width="80" height="80" rx="14" fill="#FFF8E1"/>
+            <circle cx="33" cy="36" r="15" fill="#E2231A"/>
+            <circle cx="47" cy="36" r="15" fill="#F5A623" opacity="0.93"/>
+            <text x="40" y="41" text-anchor="middle" font-size="18" font-weight="900"
+                  fill="white" font-family="sans-serif">Vi</text>
+            <text x="40" y="62" text-anchor="middle" font-size="8" font-weight="600"
+                  fill="#8B1510" font-family="sans-serif" letter-spacing="0.5">VODAFONE IDEA</text>
+          </svg>
+        </div>
+        <div class="t-name">VI-Idea</div>
+        <div class="t-sub">4G · Pan India</div>
+        <div class="t-sel">&#10003; Selected</div>
+      </div>
+
+      <!-- BSNL -->
+      <div class="t-card" data-op="bsnl" onclick="selectTelecom(this,'BSNL')">
+        <div class="t-logo-wrap" style="background:#E8F5E9">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+            <rect width="80" height="80" rx="14" fill="#E8F5E9"/>
+            <rect x="16" y="18" width="48" height="9" rx="2.5" fill="#1B5E20"/>
+            <rect x="16" y="31" width="48" height="9" rx="2.5" fill="#388E3C"/>
+            <rect x="16" y="44" width="48" height="9" rx="2.5" fill="#66BB6A"/>
+            <text x="40" y="68" text-anchor="middle" font-size="11" font-weight="700"
+                  fill="#1B5E20" font-family="sans-serif" letter-spacing="1.5">BSNL</text>
+          </svg>
+        </div>
+        <div class="t-name">BSNL</div>
+        <div class="t-sub">4G · Pan India</div>
+        <div class="t-sel">&#10003; Selected</div>
+      </div>
+
+    </div><!-- /left -->
+
+    <!-- ===== RIGHT: Details + Predict + Result ===== -->
+    <div class="right">
+
+      <!-- Usage & Charges -->
+      <div class="section">
+        <div class="sec-title">Usage &amp; Charges</div>
+        <div class="grid3">
+          <div class="field">
+            <label>Tenure (months)</label>
+            <input type="number" id="tenure" value="3" min="0" max="72">
+          </div>
+          <div class="field">
+            <label>Monthly Charges (₹)</label>
+            <input type="number" id="monthly" value="800">
+          </div>
+          <div class="field">
+            <label>Total Charges (₹)</label>
+            <input type="number" id="total" value="2400">
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer Profile -->
+      <div class="section">
+        <div class="sec-title">Customer Profile</div>
+        <div class="grid2">
+          <div class="field">
+            <label>Gender</label>
+            <select id="gender">
+              <option value="0">Female</option>
+              <option value="1">Male</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Senior Citizen</label>
+            <select id="senior">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Partner</label>
+            <select id="partner">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Dependents</label>
+            <select id="dependents">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Services -->
+      <div class="section">
+        <div class="sec-title">Services</div>
+        <div class="grid2">
+          <div class="field">
+            <label>Phone Service</label>
+            <select id="phone">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Multiple Lines</label>
+            <select id="multilines">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="nophone">No phone service</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Internet Service</label>
+            <select id="internet">
+              <option value="fiber">Fiber optic</option>
+              <option value="dsl">DSL</option>
+              <option value="no">None</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Online Security</label>
+            <select id="security">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="noint">No internet</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Online Backup</label>
+            <select id="backup">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="noint">No internet</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Device Protection</label>
+            <select id="device">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="noint">No internet</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Tech Support</label>
+            <select id="techsupport">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="noint">No internet</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Streaming TV</label>
+            <select id="tv">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="noint">No internet</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Streaming Movies</label>
+            <select id="movies">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="noint">No internet</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Billing & Contract -->
+      <div class="section">
+        <div class="sec-title">Billing &amp; Contract</div>
+        <div class="grid2">
+          <div class="field">
+            <label>Contract Type</label>
+            <select id="contract">
+              <option value="monthly">Month-to-month</option>
+              <option value="oneyear">One year</option>
+              <option value="twoyear">Two year</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Payment Method</label>
+            <select id="payment">
+              <option value="echeck">Electronic check</option>
+              <option value="mcheck">Mailed check</option>
+              <option value="credit">Credit card (auto)</option>
+              <option value="bank">Bank transfer (auto)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Paperless Billing</label>
+            <select id="paperless">
+              <option value="1">Yes</option>
+              <option value="0">No</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Predict Button + Result -->
+      <div class="predict-section">
+        <div class="predict-hint">Select a telecom partner and fill in the details, then click predict</div>
+
+        <div class="predict-btn-wrap">
+          <button class="predict-btn" onclick="predict()">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="9" stroke="#FFF8F5" stroke-opacity="0.45" stroke-width="1.4"/>
+              <path d="M8 6.5L15.5 10L8 13.5V6.5Z" fill="#FFF8F5"/>
+            </svg>
+            Predict Churn Risk
+          </button>
+        </div>
+
+        <!-- Result Box -->
+        <div class="result-box" id="result">
+          <div class="result-top">
+            <div class="risk-row">
+              <div class="risk-dot"></div>
+              <div class="risk-label" id="risk-label"></div>
+            </div>
+            <div class="risk-desc" id="risk-desc"></div>
+            <div class="score-row">
+              <div class="score-bar">
+                <div class="score-fill" id="score-fill"></div>
+              </div>
+              <div class="score-val" id="score-val"></div>
+            </div>
+          </div>
+          <div class="result-bottom">
+            <div class="factors-label">Key Risk Factors</div>
+            <div class="factors" id="factors"></div>
+          </div>
+        </div>
+
+      </div><!-- /predict-section -->
+    </div><!-- /right -->
+  </div><!-- /main-layout -->
+</div><!-- /page -->
+
+<script>
+  let selectedTelecom = 'Reliance Jio';
+
+  // Show badge on default selected card
+  document.querySelector('.t-card.active .t-sel').style.display = 'inline-block';
+
+  function selectTelecom(el, name) {
+    document.querySelectorAll('.t-card').forEach(function(c) {
+      c.classList.remove('active');
+      c.querySelector('.t-sel').style.display = 'none';
+    });
+    el.classList.add('active');
+    el.querySelector('.t-sel').style.display = 'inline-block';
+    selectedTelecom = name;
+  }
+
+  function predict() {
+    var tenure      = parseInt(document.getElementById('tenure').value)    || 0;
+    var monthly     = parseFloat(document.getElementById('monthly').value) || 0;
+    var senior      = parseInt(document.getElementById('senior').value);
+    var partner     = document.getElementById('partner').value;
+    var dependents  = document.getElementById('dependents').value;
+    var internet    = document.getElementById('internet').value;
+    var contract    = document.getElementById('contract').value;
+    var payment     = document.getElementById('payment').value;
+    var security    = document.getElementById('security').value;
+    var techsupport = document.getElementById('techsupport').value;
+
+    var score = 0;
+    var reasons = [];
+
+    // Tenure scoring
+    if (tenure < 3)        { score += 30; reasons.push('Very short tenure (< 3 months)'); }
+    else if (tenure < 12)  { score += 15; reasons.push('Short tenure (< 12 months)'); }
+    else if (tenure >= 24) { score -= 10; reasons.push('Long tenure — loyal customer'); }
+
+    // Contract
+    if (contract === 'monthly')  { score += 25; reasons.push('Month-to-month contract'); }
+    else if (contract === 'twoyear') { score -= 15; reasons.push('Two-year contract (very stable)'); }
+
+    // Internet
+    if (internet === 'fiber') { score += 20; reasons.push('Fiber optic subscriber'); }
+
+    // Payment
+    if (payment === 'echeck') { score += 15; reasons.push('Electronic check payment'); }
+
+    // Senior
+    if (senior === 1) { score += 10; reasons.push('Senior citizen'); }
+
+    // Security & support
+    if (security    === 'no') { score += 8; reasons.push('No online security'); }
+    if (techsupport === 'no') { score += 7; reasons.push('No tech support'); }
+
+    // Personal
+    if (partner    === '0') score += 5;
+    if (dependents === '0') score += 4;
+
+    // Monthly charges
+    if (monthly > 1500)     { score += 15; reasons.push('High monthly charges'); }
+    else if (monthly < 400)   score -= 5;
+
+    // Clamp
+    score = Math.min(100, Math.max(0, score));
+
+    var resultEl  = document.getElementById('result');
+    var labelEl   = document.getElementById('risk-label');
+    var descEl    = document.getElementById('risk-desc');
+    var fillEl    = document.getElementById('score-fill');
+    var valEl     = document.getElementById('score-val');
+    var factorsEl = document.getElementById('factors');
+
+    resultEl.className = 'result-box';
+
+    if (score >= 65) {
+      resultEl.classList.add('high');
+      labelEl.textContent = 'High Churn Risk';
+      descEl.textContent  = selectedTelecom + ' customer — immediate retention action recommended.';
+    } else if (score >= 35) {
+      resultEl.classList.add('medium');
+      labelEl.textContent = 'Medium Churn Risk';
+      descEl.textContent  = selectedTelecom + ' customer — consider proactive outreach soon.';
+    } else {
+      resultEl.classList.add('low');
+      labelEl.textContent = 'Low Churn Risk';
+      descEl.textContent  = selectedTelecom + ' customer — appears satisfied and loyal.';
+    }
+
+    fillEl.style.width  = score + '%';
+    valEl.textContent   = score + ' / 100';
+    factorsEl.innerHTML = reasons.slice(0, 5)
+      .map(function(r) { return '<div class="factor">' + r + '</div>'; })
+      .join('');
+
+    resultEl.style.display = 'block';
+    resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+</script>
+
+</body>
+</html>
