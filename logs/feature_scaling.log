@@ -1,0 +1,33 @@
+2026-04-05 15:39:00,423 - INFO - Training data independent size : (8276, 31)
+2026-04-05 15:39:00,423 - INFO - Training data depdepent size : (8276,)
+2026-04-05 15:39:00,423 - INFO - Testing data independent size : (1409, 31)
+2026-04-05 15:39:00,423 - INFO - Testing data dependent size : (1409,)
+2026-04-05 15:39:00,442 - INFO - before :    tenure_trim  MonthlyCharges_trim  TotalCharges_mode_trim  gender_Male  ...  telecom_partner_BSNL  telecom_partner_Reliance Jio  telecom_partner_VI-Idea  Contract_od
+0    -0.223916            -0.147316               -0.038911          0.0  ...                   0.0                           0.0                      0.0          1.0
+
+[1 rows x 31 columns]
+2026-04-05 15:39:00,452 - INFO - [[-0.06843026 -0.24662753  0.07692714 ... -0.82903468 -0.49775749
+   0.63697856]
+ [ 0.77707918  0.95775916  1.148693   ... -0.82903468  2.02287577
+   1.94739287]
+ [-1.52460788 -1.10731394 -1.88127147 ...  1.20858722 -0.49775749
+  -0.67343575]
+ ...
+ [ 0.21397833  1.59485549  0.68144797 ...  1.20858722 -0.49775749
+  -0.67343575]
+ [ 0.4863389  -1.27800243 -0.18244287 ...  1.20858722 -0.49775749
+   0.558428  ]
+ [ 0.09464366  0.09070291  0.31268504 ...  1.20858722 -0.49775749
+  -0.67343575]]
+2026-04-05 15:39:12,298 - INFO - Test Accuracy : 0.7814052519517388
+2026-04-05 15:39:12,302 - INFO - Test Confusion Matrix : [[806 230]
+ [ 78 295]]
+2026-04-05 15:39:12,311 - INFO - Classification report :               precision    recall  f1-score   support
+
+           0       0.91      0.78      0.84      1036
+           1       0.56      0.79      0.66       373
+
+    accuracy                           0.78      1409
+   macro avg       0.74      0.78      0.75      1409
+weighted avg       0.82      0.78      0.79      1409
+
